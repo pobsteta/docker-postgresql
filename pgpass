@@ -1,1 +1,1 @@
-localhost:5432:*:$SIME_DB:$SIME_DB
+localhost:5432:*:tryton:tryton
