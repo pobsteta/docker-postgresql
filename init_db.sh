@@ -25,11 +25,11 @@ echo "Création de la base de données tryton..."
 /usr/bin/psql -U tryton -h localhost -c "CREATE DATABASE tryton WITH OWNER=tryton ENCODING='UTF8' TEMPLATE=template0 CONNECTION LIMIT=-1;" postgres
 
 # Activation des extensions pour la nouvelle base de données créées
-echo "Ajout des extensions (postgis, postgis_topology, postgis_sfcgal, pgrounting, pointcloud) à la base de données $SIME_DB..."
+echo "Ajout des extensions (postgis, postgis_topology, postgis_sfcgal, pgrounting, pointcloud) à la base de données tryton..."
 /usr/bin/psql -U tryton -h localhost -w -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION postgis_sfcgal; CREATE EXTENSION pgrouting; CREATE EXTENSION pointcloud; CREATE EXTENSION pointcloud_postgis; drop type if exists texture;
 create type texture as (url text,uv float[][]);" tryton
 /usr/bin/psql -U tryton -h localhost -w -d tryton -f /usr/share/postgresql/9.5/contrib/postgis-2.2/legacy.sql
 
-echo "Base de données 'tryton' initialisée. Connexion depuis localhost possible."
+echo "Base de données tryton initialisée. Connexion depuis localhost possible."
 echo "Utiliser la commande : psql -h localhost -p 35432 -U tryton -W tryton"
 echo "Obtenez le <PORT:35432> avec la commande 'docker ps'"

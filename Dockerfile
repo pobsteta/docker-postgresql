@@ -1,8 +1,8 @@
 # PostgreSQL GIS SIME stack
 #
-# Cette image contient les outil suivants :
+# This image includes the following tools
 # - PostgreSQL 9.5
-# - PostGIS 2.2 et les extensions raster, topology et sfcgal support
+# - PostGIS 2.2 with raster, topology and sfcgal support
 # - OGR Foreign Data Wrapper
 # - PgRouting
 # - PDAL master
@@ -46,7 +46,7 @@ RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo 
 #RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 3FF5FFCAD71472C4
 
 # On ajoute le dépôt R
-RUN echo "deb http://cran.irsn.fr/bin/linux/ubuntu trusty/" > /etc/apt/sources.list.d/rcran.list
+RUN echo "deb https://pbil.univ-lyon1.fr/CRAN/bin/linux/ubuntu trusty/" > /etc/apt/sources.list.d/rcran.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 
 # On met à jour
@@ -132,7 +132,6 @@ RUN apt-get remove -y --purge autoconf build-essential cmake docbook-mathml docb
 
 # paquets de compilation
 RUN apt-get remove -y --purge automake m4 make
-RUN apt-get autoremove -y
 
 # ---------- DEBUT --------------
 
