@@ -1,2 +1,2 @@
 # docker-postgresql
-Docker PostgreSQL 9.5.2 + Postgis 2.2
+Docker PostgreSQL 9.5.2 + Postgis 2.2 et les extensions postgis, pgrouting...
