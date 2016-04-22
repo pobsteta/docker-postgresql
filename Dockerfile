@@ -7,9 +7,7 @@
 # - PgRouting
 # - PDAL master
 # - PostgreSQL PointCloud version master
-# - Tryton 2.8
-# - QGIS server
-# - R 3.2
+# - Tryton 2.8 GIS
 #
 # Version 1.0
 
@@ -40,14 +38,6 @@ RUN apt-get -y install wget ca-certificates
 # On ajoute le dépôt PostgreSQL
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ wheezy-pgdg main 9.5" > /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-
-# On ajoute le dépôt QGIS
-#RUN echo "deb http://qgis.org/debian trusty main" > /etc/apt/sources.list.d/qgis.list
-#RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 3FF5FFCAD71472C4
-
-# On ajoute le dépôt R
-RUN echo "deb https://pbil.univ-lyon1.fr/CRAN/bin/linux/ubuntu trusty/" > /etc/apt/sources.list.d/rcran.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 
 # On met à jour
 RUN apt-get -y update
@@ -138,10 +128,6 @@ RUN apt-get remove -y --purge automake m4 make
 # On initialise le script du serveur PostgreSQL
 RUN mkdir /etc/service/postgresql
 ADD postgresql.sh /etc/service/postgresql/run
-
-# On initialise le script du serveur Trytond
-#RUN mkdir /etc/service/tryton-server
-#ADD tryton-server /etc/service/trytond/tryton-server
 
 # On ajuste la configuration de PostgreSQL pour que les connexions soient possibles
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.5/main/pg_hba.conf
