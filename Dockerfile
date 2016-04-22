@@ -55,11 +55,11 @@ RUN wget https://gforge.inria.fr/frs/download.php/file/32994/CGAL-4.3.tar.gz &&\
     cd CGAL-4.3 &&\
     mkdir build && cd build &&\
     cmake .. &&\
-    make -j8 && make install
+    make && make install
 
 # On télécharge et compile SFCGAL
 RUN git clone https://github.com/Oslandia/SFCGAL.git
-RUN cd SFCGAL && cmake . && make -j8 && make install
+RUN cd SFCGAL && cmake . && make && make install
 # cleanup
 RUN rm -Rf SFCGAL
 
@@ -83,7 +83,7 @@ RUN git clone https://github.com/pgRouting/pgrouting.git &&\
     cd pgrouting &&\
     mkdir build && cd build &&\
     cmake -DWITH_DOC=OFF -DWITH_DD=ON .. &&\
-    make -j8 && make install
+    make && make install
 # cleanup
 RUN rm -Rf pgrouting
 
@@ -98,14 +98,14 @@ RUN git clone https://github.com/PDAL/PDAL.git pdal
 RUN mkdir PDAL-build && \
     cd PDAL-build && \
     cmake ../pdal && \
-    make -j8 && \
+    make && \
     make install
 # cleanup
 RUN rm -Rf pdal && rm -Rf PDAL-build
 
 # On télécharge et compile PointCloud
 RUN git clone https://github.com/pramsey/pointcloud.git
-RUN cd pointcloud && ./autogen.sh && ./configure && make -j8 && make install
+RUN cd pointcloud && ./autogen.sh && ./configure && make && make install
 # cleanup
 RUN rm -Rf pointcloud
 
