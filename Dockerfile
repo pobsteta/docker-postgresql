@@ -12,7 +12,7 @@
 # Version 1.0
 
 # Image de base ubuntu modifiée
-FROM pobsteta/docker-sime:1.0
+FROM pobsteta/docker-sime
 MAINTAINER Pascal Obstetar, pascal.obstetar@bioecoforests.com
 
 # On évite les messages debconf
