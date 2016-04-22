@@ -1,28 +1,28 @@
 Docker notes
 ============
 
-Using a docker repository
--------------------------
+Utiliser le dépôt docker
+------------------------
 
-Login to docker servers and push a named image to the server.
+Se logguer au serveur docker et pousser l'image sur le serveur.
 
 ```sh
 sudo docker login
 sudo docker push pobsteta/docker-postgresql
 ```
 
-Get the image from docker :
+Recevoir l'image du serveur docker :
 
 ```sh
 sudo docker pull pobsteta/docker-postgresql
 ```
 
-Using a Trusted Build
----------------------
+Utiliser Trusted Build
+----------------------
 
-In order to automate things better and save download/upload time, it is better to setup Trusted builds on docker
+Pour automatiser les builds successifs, renseigner sur le serveur docker Trusted Buils
 
-The docker branch from this repository is a Trusted Build on docker.
-Each commit to the docker branch will automatically trigger a build on docker and make a new version of the pobsteta/docker-postgresql image.
+Chaque commit réalisé sur le dépôt GitHub réalisera un build automatiquement sur le serveur Docker.
+Cette nouvelle version sera tagguée pobsteta/docker-postgresql:latest
 
-See more information on docker Trusted Build here : http://docs.docker.io/docker-io/builds/
+Pour plus d'informations sur Trusted Build : http://docs.docker.io/docker-io/builds/
