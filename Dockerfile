@@ -126,13 +126,6 @@ EXPOSE 5432
 # On ajoute les VOLUMEs
 VOLUME  ["/data", "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
-# Ajoute une base de données de base
-ADD pgpass /root/.pgpass
-RUN chmod 700 /root/.pgpass
-RUN mkdir -p /etc/my_init.d
-ADD init_db_script.sh /etc/my_init.d/init_db_script.sh
-ADD init_db.sh /root/init_db.sh
-
 # ---------- FIN --------------
 #
 # Nettoie les APT
