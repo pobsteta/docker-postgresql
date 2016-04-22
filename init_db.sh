@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Attendre que le serveur PostgreSQL soit lancé
-echo "Attente du lancement de PostgreSQL..."
 sleep 1
 while ! /usr/bin/pg_isready -q
 do

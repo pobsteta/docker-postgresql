@@ -11,29 +11,12 @@
 #
 # Version 1.0
 
-# Image de base ubuntu modifiée par phusion
-FROM phusion/baseimage
+# Image de base ubuntu modifiée
+FROM pobsteta/docker-sime:1.0
 MAINTAINER Pascal Obstetar, pascal.obstetar@bioecoforests.com
 
 # On évite les messages debconf
 ENV DEBIAN_FRONTEND noninteractive
-ENV HOME /root
-
-# Régénère les clefs SSH
-RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
-
-# Utilise l'initialisation du système de l'image de base
-CMD ["/sbin/my_init"]
-
-# On ajoute la locale fr_FR
-RUN locale-gen --no-purge fr_FR.UTF-8
-ENV LC_ALL fr_FR.UTF-8
-RUN update-locale LANG=fr_FR.UTF-8
-RUN dpkg-reconfigure --frontend noninteractive locales
-
-# On s'assure que les paquets sont à jour
-RUN apt-get update
-RUN apt-get -y install wget ca-certificates
 
 # On ajoute le dépôt PostgreSQL
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ wheezy-pgdg main 9.5" > /etc/apt/sources.list.d/pgdg.list
@@ -44,7 +27,7 @@ RUN apt-get -y update
 
 # On installe les dépendances de PostgreSQL, Tryton, R et QGIS
 # 1 - pour PostgreSQL, Postgis, pgrouting
-RUN apt-get install -y autoconf build-essential cmake docbook-mathml docbook-xsl libboost-dev libboost-thread-dev libboost-filesystem-dev libboost-system-dev libboost-iostreams-dev libboost-program-options-dev libboost-timer-dev libcunit1-dev libgdal-dev libgeos++-dev libgeotiff-dev libgmp-dev libjson0-dev libjson-c-dev liblas-dev libmpfr-dev libopenscenegraph-dev libpq-dev libproj-dev libxml2-dev postgresql-server-dev-9.5 xsltproc git build-essential wget 
+RUN apt-get install -y autoconf build-essential cmake docbook-mathml docbook-xsl libboost-dev libboost-thread-dev libboost-filesystem-dev libboost-system-dev libboost-iostreams-dev libboost-program-options-dev libboost-timer-dev libcunit1-dev libgdal-dev libgeos++-dev libgeotiff-dev libgmp-dev libjson0-dev libjson-c-dev liblas-dev libmpfr-dev libopenscenegraph-dev libpq-dev libproj-dev libxml2-dev postgresql-server-dev-9.5 xsltproc git build-essential
 
 # application packages
 RUN apt-get install -y postgresql-9.5
@@ -56,6 +39,8 @@ RUN wget https://gforge.inria.fr/frs/download.php/file/32994/CGAL-4.3.tar.gz &&\
     mkdir build && cd build &&\
     cmake .. &&\
     make && make install
+# cleanup
+RUN rm -Rf CGAL-4.3.tar.gz CGAL-4.3
 
 # On télécharge et compile SFCGAL
 RUN git clone https://github.com/Oslandia/SFCGAL.git
@@ -126,8 +111,8 @@ RUN apt-get remove -y --purge automake m4 make
 # ---------- DEBUT --------------
 
 # On initialise le script du serveur PostgreSQL
-RUN mkdir /etc/service/postgresql
-ADD postgresql.sh /etc/service/postgresql/run
+RUN mkdir /etc/service/30-postgresql
+ADD postgresql.sh /etc/service/30-postgresql/run
 
 # On ajuste la configuration de PostgreSQL pour que les connexions soient possibles
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.5/main/pg_hba.conf
@@ -151,5 +136,5 @@ ADD init_db.sh /root/init_db.sh
 # ---------- FIN --------------
 #
 # Nettoie les APT
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*30-
 
