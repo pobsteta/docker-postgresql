@@ -1,13 +1,7 @@
-# PostgreSQL GIS SIME stack
+# PostgreSQL stack
 #
 # This image includes the following tools
 # - PostgreSQL 9.5
-# - PostGIS 2.2 with raster, topology and sfcgal support
-# - OGR Foreign Data Wrapper
-# - PgRouting
-# - PDAL master
-# - PostgreSQL PointCloud version master
-# - Tryton 2.8 GIS
 #
 # Version 1.0
 
@@ -15,119 +9,74 @@
 FROM pobsteta/docker-sime
 MAINTAINER Pascal Obstetar, pascal.obstetar@bioecoforests.com
 
+# ---------- DEBUT --------------
+
 # On évite les messages debconf
 ENV DEBIAN_FRONTEND noninteractive
 
-# On ajoute le dépôt PostgreSQL
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ wheezy-pgdg main 9.5" > /etc/apt/sources.list.d/pgdg.list
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+# On explicite user/group IDs
+RUN groupadd -r postgres --gid=999 && useradd -r -g postgres --uid=999 postgres
 
-# On met à jour
-RUN apt-get -y update
+# Grab gosu for easy step-down from root
+ENV GOSU_VERSION 1.7
+RUN set -x \
+	&& apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+	&& export GNUPGHOME="$(mktemp -d)" \
+	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+	&& rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+	&& chmod +x /usr/local/bin/gosu \
+	&& gosu nobody true \
+	&& apt-get purge -y --auto-remove ca-certificates
 
-# On installe les dépendances de PostgreSQL, Tryton, R et QGIS
-# 1 - pour PostgreSQL, Postgis, pgrouting
-RUN apt-get install -y autoconf build-essential cmake docbook-mathml docbook-xsl libboost-dev libboost-thread-dev libboost-filesystem-dev libboost-system-dev libboost-iostreams-dev libboost-program-options-dev libboost-timer-dev libcunit1-dev libgdal-dev libgeos++-dev libgeotiff-dev libgmp-dev libjson0-dev libjson-c-dev liblas-dev libmpfr-dev libopenscenegraph-dev libpq-dev libproj-dev libxml2-dev postgresql-server-dev-9.5 xsltproc git build-essential
+# On met la locale à "fr_FR.UTF-8" pour que Postgres soit en français par défaut
+RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
+	&& localedef -i fr_FR -c -f UTF-8 -A /usr/share/locale/locale.alias fr_FR.UTF-8
+ENV LANG fr_FR.utf8
 
-# application packages
-RUN apt-get install -y postgresql-9.5
+RUN mkdir /docker-entrypoint-initdb.d
 
-# On télécharge et compile CGAL
-RUN wget https://gforge.inria.fr/frs/download.php/file/32994/CGAL-4.3.tar.gz &&\
-    tar -xzf CGAL-4.3.tar.gz &&\
-    cd CGAL-4.3 &&\
-    mkdir build && cd build &&\
-    cmake .. &&\
-    make && make install
-# cleanup
-RUN rm -Rf CGAL-4.3.tar.gz CGAL-4.3
 
-# On télécharge et compile SFCGAL
-RUN git clone https://github.com/Oslandia/SFCGAL.git
-RUN cd SFCGAL && cmake . && make && make install
-# cleanup
-RUN rm -Rf SFCGAL
+# Les versions de PostgreSQL à installer
+ENV PG_MAJOR 9.5
 
-# On télécharge et installe GEOS 3.5
-RUN wget http://download.osgeo.org/geos/geos-3.5.0.tar.bz2 &&\
-    tar -xjf geos-3.5.0.tar.bz2 &&\
-    cd geos-3.5.0 &&\
-    ./configure && make && make install &&\
-    cd .. && rm -Rf geos-3.5.0 geos-3.5.0.tar.bz2
+# on ajoute le dépôt Postgres
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ wheezy-pgdg main $PG_MAJOR" > /etc/apt/sources.list.d/pgdg.list
 
-# On télécharge et compile PostGIS
-RUN wget http://download.osgeo.org/postgis/source/postgis-2.2.0.tar.gz
-RUN tar -xzf postgis-2.2.0.tar.gz
-RUN cd postgis-2.2.0 && ./configure --with-sfcgal=/usr/local/bin/sfcgal-config --with-geos=/usr/local/bin/geos-config
-RUN cd postgis-2.2.0 && make && make install
-# cleanup
-RUN rm -Rf postgis-2.2.0.tar.gz postgis-2.2.0
+RUN apt-get update \
+	&& apt-get install -y postgresql-common \
+	&& sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf \
+	&& apt-get install -y \
+		postgresql-$PG_MAJOR \
+		postgresql-contrib-$PG_MAJOR \
+	&& rm -rf /var/lib/apt/lists/*
 
-# On télécharge et compile pgrouting
-RUN git clone https://github.com/pgRouting/pgrouting.git &&\
-    cd pgrouting &&\
-    mkdir build && cd build &&\
-    cmake -DWITH_DOC=OFF -DWITH_DD=ON .. &&\
-    make && make install
-# cleanup
-RUN rm -Rf pgrouting
+# On met les fichiers de configuration de Postgres en place
+RUN mv -v /usr/share/postgresql/$PG_MAJOR/postgresql.conf.sample /usr/share/postgresql/ \
+	&& ln -sv ../postgresql.conf.sample /usr/share/postgresql/$PG_MAJOR/ \
+	&& sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample
 
-# On télécharge et compile ogr_fdw
-RUN git clone https://github.com/pramsey/pgsql-ogr-fdw.git &&\
-    cd pgsql-ogr-fdw &&\
-    make && make install &&\
-    cd .. && rm -Rf pgsql-ogr-fdw
+RUN mkdir -p /var/run/postgresql && chown -R postgres /var/run/postgresql
 
-# On télécharge et compile PDAL
-RUN git clone https://github.com/PDAL/PDAL.git pdal
-RUN mkdir PDAL-build && \
-    cd PDAL-build && \
-    cmake ../pdal && \
-    make && \
-    make install
-# cleanup
-RUN rm -Rf pdal && rm -Rf PDAL-build
+# On supprime wget
+RUN apt-get purge -y --auto-remove wget
 
-# On télécharge et compile PointCloud
-RUN git clone https://github.com/pramsey/pointcloud.git
-RUN cd pointcloud && ./autogen.sh && ./configure && make && make install
-# cleanup
-RUN rm -Rf pointcloud
+ENV PATH /usr/lib/postgresql/$PG_MAJOR/bin:$PATH
+ENV PGDATA /var/lib/postgresql/data
+VOLUME /var/lib/postgresql/data
 
-# On rend les compilations visibles pour le système
-RUN ldconfig
+COPY docker-entrypoint.sh /
 
-# On nettoie les paquets devenus inutiles
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
-# paquets all -dev
-RUN apt-get remove -y --purge autotools-dev libgeos-dev libgif-dev libgl1-mesa-dev libglu1-mesa-dev libgnutls-dev libgpg-error-dev libhdf4-alt-dev libhdf5-dev libicu-dev libidn11-dev libjasper-dev libjbig-dev libjpeg8-dev libjpeg-dev libjpeg-turbo8-dev libkrb5-dev libldap2-dev libltdl-dev liblzma-dev libmysqlclient-dev libnetcdf-dev libopenthreads-dev libp11-kit-dev libpng12-dev libpthread-stubs0-dev librtmp-dev libspatialite-dev libsqlite3-dev libssl-dev libstdc++-4.8-dev libtasn1-6-dev libtiff5-dev libwebp-dev libx11-dev libx11-xcb-dev libxau-dev libxcb1-dev libxcb-dri2-0-dev libxcb-dri3-dev libxcb-glx0-dev libxcb-present-dev libxcb-randr0-dev libxcb-render0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxdamage-dev libxdmcp-dev libxerces-c-dev libxext-dev libxfixes-dev libxshmfence-dev libxxf86vm-dev linux-libc-dev manpages-dev mesa-common-dev libgcrypt11-dev unixodbc-dev uuid-dev x11proto-core-dev x11proto-damage-dev x11proto-dri2-dev x11proto-fixes-dev x11proto-gl-dev x11proto-input-dev x11proto-kb-dev x11proto-xext-dev x11proto-xf86vidmode-dev xtrans-dev zlib1g-dev
-
-# paquets installés
-RUN apt-get remove -y --purge autoconf build-essential cmake docbook-mathml docbook-xsl libboost-dev libboost-filesystem-dev libboost-timer-dev libcgal-dev libcunit1-dev libgdal-dev libgeos++-dev libgeotiff-dev libgmp-dev libjson0-dev libjson-c-dev liblas-dev libmpfr-dev libopenscenegraph-dev libpq-dev libproj-dev libxml2-dev postgresql-server-dev-9.5 xsltproc git build-essential wget 
-
-# paquets de compilation
-RUN apt-get remove -y --purge automake m4 make
-
-# ---------- DEBUT --------------
-
-# On initialise le script du serveur PostgreSQL
-RUN mkdir /etc/service/30-postgresql
-ADD postgresql.sh /etc/service/30-postgresql/run
-
-# On ajuste la configuration de PostgreSQL pour que les connexions soient possibles
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.5/main/pg_hba.conf
-
-# On ajuste les adresses d'écoute et le port du serveur Postgres en 5432
-RUN echo "listen_addresses='*'" >> /etc/postgresql/9.5/main/postgresql.conf
-
-# Expose le port 5432 pour PostgreSQL
 EXPOSE 5432
-
-# On ajoute les VOLUMEs
-VOLUME  ["/data", "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+CMD ["postgres"]
 
 # ---------- FIN --------------
 #
 # Nettoie les APT
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*30-
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
 
