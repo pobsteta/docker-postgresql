@@ -11,4 +11,4 @@ docker rmi $(docker images -q)
 # Construit l'image
 docker build -t pobsteta/docker-postgresql .
 # Lance le container créé détaché (argument -d)
-#docker run -p 35432:5432 -p 38000:8000 pobsteta/docker-postgresql
+#docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d pobsteta/docker-postgresql
