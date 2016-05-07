@@ -26,14 +26,13 @@ if [ "$1" = 'postgres' ]; then
 			# The - option suppresses leading tabs but *not* spaces. :)
 			cat >&2 <<-'EOWARN'
 				****************************************************
-				WARNING: No password has been set for the database.
-				         This will allow anyone with access to the
-				         Postgres port to access your database. In
-				         Docker's default configuration, this is
-				         effectively any other container on the same
-				         system.
-				         Use "-e POSTGRES_PASSWORD=password" to set
-				         it in "docker run".
+				AVERTISSEMENT : Aucun mot de passe a été défini pour
+				                la base de données.
+				                Cela permettra à toute personne ayant
+				                accès au port Postgres d'accéder à 
+				                votre base de données. Utilisez 
+				                "POSTGRES_PASSWORD -e = mot de passe"
+				                pour définir le "docker run".				
 				****************************************************
 			EOWARN
 
@@ -42,6 +41,8 @@ if [ "$1" = 'postgres' ]; then
 		fi
 
 		{ echo; echo "host all all 0.0.0.0/0 $authMethod"; } >> "$PGDATA/pg_hba.conf"
+		{ echo; echo "host all all 127.0.0.1/32 md5"; } >> "$PGDATA/pg_hba.conf"
+		{ echo; echo "host all all 127.0.0.1/32 trust"; } >> "$PGDATA/pg_hba.conf"
 
 		# internal start of server in order to allow set-up using psql-client		
 		# does not listen on external TCP/IP and waits until start finishes
@@ -88,7 +89,7 @@ if [ "$1" = 'postgres' ]; then
 		gosu postgres pg_ctl -D "$PGDATA" -m fast -w stop
 
 		echo
-		echo 'PostgreSQL init process complete; ready for start up.'
+		echo 'Initialisation de PostgreSQL réalisé, le serveur est prêt à être lancé !'
 		echo
 	fi
 

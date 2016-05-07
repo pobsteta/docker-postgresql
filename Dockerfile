@@ -74,6 +74,7 @@ RUN chmod 700 /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 EXPOSE 5432
+
 CMD ["postgres"]
 
 # ---------- FIN --------------

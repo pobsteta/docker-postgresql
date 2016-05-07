@@ -20,7 +20,7 @@ sudo docker pull pobsteta/docker-postgresql
 Utiliser Trusted Build
 ----------------------
 
-Pour automatiser les builds successifs, renseigner sur le serveur docker Trusted Buils
+Pour automatiser les builds successifs, renseigner sur le serveur docker Trusted Builds
 
 Chaque commit réalisé sur le dépôt GitHub réalisera un build automatiquement sur le serveur Docker.
 Cette nouvelle version sera tagguée pobsteta/docker-postgresql:latest
