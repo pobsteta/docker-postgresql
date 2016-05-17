@@ -41,13 +41,11 @@ if [ "$1" = 'postgres' ]; then
 		fi
 
 		{ echo; echo "host all all 0.0.0.0/0 $authMethod"; } >> "$PGDATA/pg_hba.conf"
-		{ echo; echo "host all all 127.0.0.1/32 md5"; } >> "$PGDATA/pg_hba.conf"
-		{ echo; echo "host all all 127.0.0.1/32 trust"; } >> "$PGDATA/pg_hba.conf"
 
 		# internal start of server in order to allow set-up using psql-client		
 		# does not listen on external TCP/IP and waits until start finishes
 		gosu postgres pg_ctl -D "$PGDATA" \
-			-o "-c listen_addresses='localhost'" \
+			-o "-c listen_addresses='*'" \
 			-w start
 
 		: ${POSTGRES_USER:=postgres}
@@ -78,10 +76,10 @@ if [ "$1" = 'postgres' ]; then
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
 			case "$f" in
-				*.sh)     echo "$0: running $f"; . "$f" ;;
-				*.sql)    echo "$0: running $f"; "${psql[@]}" < "$f"; echo ;;
-				*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | "${psql[@]}"; echo ;;
-				*)        echo "$0: ignoring $f" ;;
+				*.sh)     echo "$0: lance $f"; . "$f" ;;
+				*.sql)    echo "$0: lance $f"; "${psql[@]}" < "$f"; echo ;;
+				*.sql.gz) echo "$0: lance $f"; gunzip -c "$f" | "${psql[@]}"; echo ;;
+				*)        echo "$0: ignore $f" ;;
 			esac
 			echo
 		done

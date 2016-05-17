@@ -36,9 +36,6 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
 	&& localedef -i fr_FR -c -f UTF-8 -A /usr/share/locale/locale.alias fr_FR.UTF-8
 ENV LANG fr_FR.utf8
 
-RUN mkdir /docker-entrypoint-initdb.d
-
-
 # Les versions de PostgreSQL à installer
 ENV PG_MAJOR 9.5
 
@@ -67,6 +64,13 @@ RUN apt-get purge -y --auto-remove wget
 ENV PATH /usr/lib/postgresql/$PG_MAJOR/bin:$PATH
 ENV PGDATA /var/lib/postgresql/data
 VOLUME /var/lib/postgresql/data
+
+# Crée le répertoire docker-entrypoint-initdb.d
+RUN mkdir /docker-entrypoint-initdb.d
+
+# Copie le script de création de l'utilisateur docker
+COPY init-user-db.sh /docker-entrypoint-initdb.d
+RUN chmod 700 /docker-entrypoint-initdb.d/init-user-db.sh
 
 COPY docker-entrypoint.sh /
 RUN chmod 700 /docker-entrypoint.sh
