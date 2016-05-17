@@ -6,7 +6,7 @@
 # Version 1.0
 
 # Image de base ubuntu modifiée
-FROM pobsteta/docker-sime
+FROM pobsteta/docker-base
 MAINTAINER Pascal Obstetar <pascal.obstetar@bioecoforests.com>
 
 # ---------- DEBUT --------------
